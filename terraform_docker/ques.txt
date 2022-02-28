@@ -1,0 +1,32 @@
+Ques. - We are using following terraform code to create 2 docker container. Modify this code and provide dynamic port values without using any new variable. We are getting following error at run time.
+
+
+resource "docker_image" "bridge_integrity" {
+ name = "tarunkhare89/firstng:latest"
+}
+
+resource "docker_container" "bridge_integrity_container" {
+  count = length(var.container_names)
+  image = docker_image.bridge_integrity.latest
+  name = var.container_names[count.index]
+  ports {
+   internal = "8080"
+   external = "9090"
+ }
+}
+
+variable "container_names" {
+  type = list(string)
+  default = ["first", "second"]
+
+}
+
+
+
+Error: -  Unable to start container: Error response from daemon: driver failed programming external connectivity on endpoint second (e45f780c1a0bf9dc9fd0e1d2cc9d2acd20c771d12487ee9cf70c6ddb178ef0e7): Bind for 0.0.0.0:9090 failed: port is already allocated
+
+Output -
+
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                            NAMES
+6d6ba708f083   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9092->8082/tcp   second
+72e909b73291   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9091->8081/tcp   first
