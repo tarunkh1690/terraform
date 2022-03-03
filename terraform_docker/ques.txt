@@ -1,6 +1,39 @@
-Ques. - We are using following terraform code to create 2 docker container. Modify this code and provide dynamic port values without using any new variable. We are getting following error at run time.
+Ques. - We are using following terraform code to create 3 docker container. Modify this code and provide dynamic port values without using new variable. We are getting following error at run time.
+
+container 1 - 
+Name - first 
+internal port - 8081
+external port - 9091
+container 2 - 
+Name -  second
+internal port - 8082
+external port - 9092
+container 3 - 
+Name -  third
+internal port - 8083
+external port - 9093
+
+and so no ....
 
 
+
+
+ERROR -  Unable to start container: Error response from daemon: driver failed programming external connectivity on endpoint second (e45f780c1a0bf9dc9fd0e1d2cc9d2acd20c771d12487ee9cf70c6ddb178ef0e7): Bind for 0.0.0.0:9091 failed: port is already allocated
+
+
+
+Expected Output -
+
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                            NAMES
+79809b342567   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9093->8083/tcp   third
+6d6ba708f083   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9092->8082/tcp   second
+72e909b73291   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9091->8081/tcp   first
+
+
+Code - 
+
+main.tf 
+---
 resource "docker_image" "bridge_integrity" {
  name = "tarunkhare89/firstng:latest"
 }
@@ -10,23 +43,35 @@ resource "docker_container" "bridge_integrity_container" {
   image = docker_image.bridge_integrity.latest
   name = var.container_names[count.index]
   ports {
-   internal = "8080"
-   external = "9090"
+   internal = "8081"
+   external = "9091"
  }
 }
 
 variable "container_names" {
   type = list(string)
-  default = ["first", "second"]
+  default = ["first", "second", "third"]
 
 }
+---
+
+provider.tf
+---
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "2.16.0"
+    }
+  }
+}
+
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+  
+}
+---
 
 
 
-Error: -  Unable to start container: Error response from daemon: driver failed programming external connectivity on endpoint second (e45f780c1a0bf9dc9fd0e1d2cc9d2acd20c771d12487ee9cf70c6ddb178ef0e7): Bind for 0.0.0.0:9090 failed: port is already allocated
 
-Output -
-
-CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS         PORTS                            NAMES
-6d6ba708f083   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9092->8082/tcp   second
-72e909b73291   098b25e0e3b8   "nginx -g 'daemon of…"   9 seconds ago   Up 7 seconds   80/tcp, 0.0.0.0:9091->8081/tcp   first
